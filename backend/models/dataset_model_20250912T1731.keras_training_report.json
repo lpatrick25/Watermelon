@@ -1,0 +1,20 @@
+{
+  "epochs": 30,
+  "class_names": [
+    "crimsonsweet_ripe",
+    "crimsonsweet_unripe",
+    "not_valid",
+    "other_variety"
+  ],
+  "num_classes": 4,
+  "final_train_accuracy": 0.886658787727356,
+  "final_val_accuracy": 0.8401639461517334,
+  "final_train_loss": 0.3831835389137268,
+  "final_val_loss": 0.5935686826705933,
+  "class_weights": {
+    "0": 2.8233333333333333,
+    "1": 3.113970588235294,
+    "2": 0.3055555555555556,
+    "3": 19.25
+  }
+}
