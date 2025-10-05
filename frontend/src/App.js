@@ -14,13 +14,19 @@ const API = `${BACKEND_URL}/api`;
 
 // Navigation Component
 const Navigation = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <nav className="bg-green-600 text-white p-4 shadow-lg">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold flex items-center">
+    <nav className="nav-container">
+      <div className="nav-content">
+        <Link to="/" className="nav-logo">
           🍉 Watermelon Classifier
         </Link>
-        <div className="flex space-x-6">
+        <div className="nav-links">
           <Link to="/" className="hover:text-green-200 transition-colors">
             Classify
           </Link>
@@ -34,6 +40,17 @@ const Navigation = () => {
             Models
           </Link>
         </div>
+        <div className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`} onClick={toggleMobileMenu}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <div className={`nav-mobile ${isMobileMenuOpen ? 'active' : ''}`}>
+        <Link to="/" onClick={toggleMobileMenu}>Classify</Link>
+        <Link to="/datasets" onClick={toggleMobileMenu}>Datasets</Link>
+        <Link to="/train" onClick={toggleMobileMenu}>Train Model</Link>
+        <Link to="/models" onClick={toggleMobileMenu}>Models</Link>
       </div>
     </nav>
   );

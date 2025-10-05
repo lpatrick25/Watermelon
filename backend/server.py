@@ -43,14 +43,6 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# class PredictionResult(BaseModel):
-#     variety: str
-#     ripeness: str
-#     predicted_class: str
-#     confidence: float
-#     confidence_breakdown: Dict[str, float]
-#     is_valid: bool
-#     is_crimsonsweet: bool
 class PredictionResult(BaseModel):
     variety: str
     ripeness: str
@@ -225,15 +217,6 @@ async def train_model_background(dataset_name: str, epochs: int, model_name: str
         
         training_status["message"] = "Saving model..."
         training_status["progress"] = 90
-        
-        # # Save model
-        # model_path = dataset_manager.models_path / model_name
-        # watermelon_classifier.save_model(str(model_path))
-        
-        # # Save training report
-        # report_path = model_path / "training_report.json"
-        # with open(report_path, 'w') as f:
-        #     json.dump(training_report, f, indent=2)
 
         # Save model
         model_path = dataset_manager.models_path / model_name
@@ -253,56 +236,6 @@ async def train_model_background(dataset_name: str, epochs: int, model_name: str
     except Exception as e:
         training_status = {"is_training": False, "progress": 0, "message": f"Training failed: {str(e)}"}
         logger.error(f"Training error: {str(e)}")
-# async def train_model_background(dataset_name: str, epochs: int, model_name: str):
-#     """Background task for model training"""
-#     global training_status
-    
-#     try:
-#         training_status = {"is_training": True, "progress": 0, "message": "Starting training..."}
-        
-#         # Get dataset paths
-#         datasets = dataset_manager.list_datasets()
-#         dataset = next((d for d in datasets if d["name"] == dataset_name), None)
-        
-#         if not dataset:
-#             training_status = {"is_training": False, "progress": 0, "message": f"Dataset '{dataset_name}' not found"}
-#             return
-        
-#         dataset_path = Path(dataset["path"])
-#         train_path = str(dataset_path / "train")
-#         val_path = str(dataset_path / "val")
-        
-#         training_status["message"] = "Initializing model..."
-#         training_status["progress"] = 10
-        
-#         # Train model
-#         training_status["message"] = "Training model..."
-#         training_status["progress"] = 20
-        
-#         training_report = watermelon_classifier.train_model(train_path, val_path, epochs)
-        
-#         training_status["message"] = "Saving model..."
-#         training_status["progress"] = 90
-        
-#         # Save model to a directory
-#         model_name_no_ext = Path(model_name).stem  # Remove any .keras or .h5 extension
-#         model_path = dataset_manager.models_path / model_name_no_ext
-#         watermelon_classifier.save_model(str(model_path))
-        
-#         # Save training report
-#         report_path = model_path / "training_report.json"
-#         with open(report_path, 'w') as f:
-#             json.dump(training_report, f, indent=2)
-        
-#         training_status = {
-#             "is_training": False, 
-#             "progress": 100, 
-#             "message": f"Training completed successfully! Final accuracy: {training_report['final_val_accuracy']:.3f}"
-#         }
-        
-#     except Exception as e:
-#         training_status = {"is_training": False, "progress": 0, "message": f"Training failed: {str(e)}"}
-#         logger.error(f"Training error: {str(e)}")
 
 @api_router.post("/train")
 async def start_training(request: TrainingRequest, background_tasks: BackgroundTasks):
@@ -337,28 +270,6 @@ async def list_models():
     except Exception as e:
         logger.error(f"Error listing models: {str(e)}")
         raise HTTPException(status_code=500, detail="Error listing models")
-
-# @api_router.post("/models/{model_name}/load")
-# async def load_model(model_name: str):
-#     """Load a specific model for inference"""
-#     try:
-#         model_path = dataset_manager.models_path / model_name
-        
-#         if not model_path.exists():
-#             raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
-        
-#         # Load the model
-#         watermelon_classifier.load_model(str(model_path))
-        
-#         return {"message": f"Model '{model_name}' loaded successfully"}
-        
-#     except HTTPException:
-#         raise  # Re-raise HTTP exceptions
-#     except ValueError as e:
-#         raise HTTPException(status_code=400, detail=str(e))
-#     except Exception as e:
-#         logger.error(f"Error loading model: {str(e)}")
-#         raise HTTPException(status_code=500, detail="Error loading model")
 
 @api_router.post("/models/{model_name}/load")
 async def load_model(model_name: str):
@@ -396,10 +307,20 @@ async def load_model(model_name: str):
 async def evaluate_model(model_name: str, dataset_name: str):
     """Evaluate model performance on test dataset"""
     try:
-        # Load model if not already loaded
+        # Try directory path first
         model_path = dataset_manager.models_path / model_name
+
+        # If not found, try .keras or .h5 file
         if not model_path.exists():
-            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
+            model_path_keras = dataset_manager.models_path / f"{model_name}.keras"
+            model_path_h5 = dataset_manager.models_path / f"{model_name}.h5"
+            
+            if model_path_keras.exists():
+                model_path = model_path_keras
+            elif model_path_h5.exists():
+                model_path = model_path_h5
+            else:
+                raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
         
         # Load model
         temp_classifier = WatermelonClassifier()
@@ -424,31 +345,6 @@ async def evaluate_model(model_name: str, dataset_name: str):
     except Exception as e:
         logger.error(f"Error evaluating model: {str(e)}")
         raise HTTPException(status_code=500, detail="Error evaluating model")
-
-# @api_router.post("/models/{model_name}/export/tflite")
-# async def export_model_tflite(model_name: str):
-#     """Export model to TensorFlow Lite format"""
-#     try:
-#         model_path = dataset_manager.models_path / model_name
-#         tflite_path = model_path / f"{model_name}.tflite"
-        
-#         if not model_path.exists():
-#             raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
-        
-#         # Export to TFLite
-#         temp_classifier = WatermelonClassifier()
-#         temp_classifier.export_tflite(str(model_path), str(tflite_path))
-        
-#         return {
-#             "message": f"Model exported to TFLite successfully",
-#             "tflite_path": str(tflite_path)
-#         }
-        
-#     except ValueError as e:
-#         raise HTTPException(status_code=400, detail=str(e))
-#     except Exception as e:
-#         logger.error(f"Error exporting model: {str(e)}")
-#         raise HTTPException(status_code=500, detail="Error exporting model")
 
 @api_router.post("/models/{model_name}/export/tflite")
 async def export_model_tflite(model_name: str):

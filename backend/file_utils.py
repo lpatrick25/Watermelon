@@ -250,39 +250,7 @@ class DatasetManager:
                 datasets.append(dataset_info)
         
         return datasets
-    
-    # def list_models(self) -> List[Dict]:
-    #     """List all saved models"""
-    #     models = []
-        
-    #     for model_dir in self.models_path.iterdir():
-    #         if model_dir.is_dir():
-    #             # Check for saved_model.pb or .h5 files
-    #             has_saved_model = (model_dir / "saved_model.pb").exists()
-    #             h5_files = list(model_dir.glob("*.h5"))
-                
-    #             if has_saved_model or h5_files:
-    #                 model_info = {
-    #                     "name": model_dir.name,
-    #                     "path": str(model_dir),
-    #                     "format": "SavedModel" if has_saved_model else "H5",
-    #                     "size_mb": self.get_directory_size(model_dir) / (1024 * 1024)
-    #                 }
-                    
-    #                 # Load metadata if available
-    #                 metadata_path = model_dir / "metadata.json"
-    #                 if metadata_path.exists():
-    #                     import json
-    #                     try:
-    #                         with open(metadata_path, 'r') as f:
-    #                             metadata = json.load(f)
-    #                         model_info.update(metadata)
-    #                     except:
-    #                         pass
-                    
-    #                 models.append(model_info)
-        
-    #     return models
+
     def list_models(self) -> List[Dict]:
         """List all saved models"""
         models = []
